@@ -1,7 +1,5 @@
 <script>
     !function () {
-    var owner = (document.currentScript || {}).ownerDocument || document;
-    $(owner).ready(function(){
         var sfIpInput = Object.create(HTMLInputElement.prototype);
 
         sfIpInput.createdCallback = function () {
@@ -10,8 +8,7 @@
 
         document.registerElement('sf-ip-input', {
             prototype: sfIpInput,
-            extends:'input'
+            extends: 'input'
         });
-    });
-}();
+    }();
 </script>
