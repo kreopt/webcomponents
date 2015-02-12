@@ -1,0 +1,133 @@
+<template id="player_template">
+    <style>@import "/public/webcomponents/sf-rtsp-player/sf-rtsp-player.css";</style>
+    <div class="player_container">
+        <div class="player"></div>
+        <div class="player_overlay overlay"></div>
+        <template id="viewport_selector_template">
+            <sf-viewport class="overlay"></sf-viewport>
+        </template>
+        <div class="conn_err overlay">Connection error...</div>
+        <div class="buffering conn_err overlay">
+            <sf-spinner></sf-spinner>
+        </div>
+    </div>
+</template>
+<script>
+    !function () {
+
+        var owner = (HTMLImports.currentScript || document.currentScript || {}).ownerDocument || document;
+        var playerProto = Object.create(HTMLElement.prototype,{
+            viewport:{writable:true, value:null},
+            player:{writable:true, value:null},
+            player_instance:{writable:true, value:null}
+        });
+
+        playerProto.createdCallback = function () {
+            var shadow = this;//.createShadowRoot();
+            var tpl = owner.querySelector('#player_template');
+            var clone = document.importNode(tpl.content, true);
+            shadow.appendChild(clone);
+        };
+        playerProto.attachedCallback = function () {
+            var player = this./*shadowRoot.*/querySelector('.player');
+            player.setAttribute('id', 'locomote_'+this.getAttribute('id'));
+            if (this.getAttribute('vpselector')!==null) {
+                player.dataset['resize']=this.getAttribute('resize')!==null;
+                var tpl = player.parentNode.querySelector('#viewport_selector_template');
+                var clone = document.importNode(tpl.content, true);
+                this.viewport = clone.querySelector('sf-viewport');
+                var overlay = this./*shadowRoot.*/querySelector('.player_overlay');
+                $('sf-viewport', this).remove();
+                $(overlay).after(clone);
+            }
+            this.player = player;
+            this.setup_player();
+            this.dispatchEvent(new CustomEvent('player_initialized'));
+        };
+        playerProto.detachedCallback = function () {
+            var player = this./*shadowRoot.*/querySelector('.player');
+            this.player_instance.destroy();
+            this.player_instance = null;
+            console.log('detached');
+        };
+
+        playerProto.restart_player = function() {
+            $('.conn_err', this).show();
+            this.player_instance.stop();
+            this.player_instance.destroy();
+            this.player_instance = null;
+            var _this = this;
+            setTimeout(function () {
+                _this.setup_player();
+            }, 2000);
+        };
+        playerProto.setup_player = function() {
+            var container = this./*shadowRoot.*/querySelector('.player');
+            var uri = this.getAttribute('url');
+            /* Load SWF and instantiate Locomote */
+            var player = new Locomote(container, '/public/components/locomote/dist/Player.swf');
+            /* Set up a listener for when the API is ready to be used */
+            var _this = $(container).parent();
+            player.on('apiReady', function () {
+                console.log('API is ready. `play` can now be called : ' + uri);
+                /* Tell Locomote to play the specified media */
+                // TODO: move to component attributes
+                $('.conn_err', _this).hide();
+                $('.loading', _this).show();
+                player.config({
+                    buffer: 0.5,
+                    debugLogger: true,
+                    connectionTimeout: 10
+                }).play(uri);
+            }).on('streamStarted', function () {
+                $('.conn_err', _this).hide();
+                $('.loading', _this).hide();
+                console.log('stream has started');
+
+                if (container.dataset['resize']) {
+                    var stat = player.streamStatus().resolution;
+                    var $player = $(container);
+                    $player.width(stat.width);
+                    $player.height(stat.height);
+                }
+                var event = new CustomEvent('started');
+                container.dispatchEvent(event);
+            }).on('streamEnded', function () {
+                console.log('stream has ended');
+                _this.restart_player();
+            }).on('streamStopped', function () {
+                console.log('stream has stopped');
+                _this.restart_player();
+            }).on('streamPaused', function (result) {
+                console.log('stream has paused: ', result.reason);
+                _this.restart_player();
+            }).on('log', function (result) {
+                //console.log(result);
+            }).on('error', function (err) {
+                console.log(err);
+                if (err.code != 404) {
+                    _this.restart_player();
+                }
+            });
+            this.player_instance = player;
+        };
+
+        playerProto.hide = function(){
+            if (this.player_instance) {
+                this.player_instance.stop();
+                this.player_instance.destroy();
+                this.player_instance = null;
+                $(this).hide();
+            }
+        };
+        playerProto.show = function(){
+            if (!this.player_instance) {
+                $(this).show();
+                this.attachedCallback();
+            }
+        };
+        document.registerElement('sf-rtsp-player', {
+            prototype: playerProto
+        })
+    }();
+</script>
