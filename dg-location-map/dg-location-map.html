@@ -1,32 +1,70 @@
-<link rel="import" href="/static/bower_components/polymer/polymer.html">
-
-<polymer-element name="dg-location-map" attributes="lat lon zoom id staic">
-    <template>
-        <template if="{{ !static }}">
-            <div class="map" id="{{ id }}"></div>
-        </template>
-        <template if="{{ static }}">
-            <!-- TODO: map size -->
-            <img class="map"
-                 src="http://static.maps.api.2gis.ru/1.0?zoom={{zoom}}&size=500,350&markers={{lat}},{{lon}}">
-        </template>
+<template id="root_tpl">
+    <style>
+        .map {
+            width: 684rem;
+            height: 436rem;
+        }
+    </style>
+    <template id="dynamic_template">
+        <div class="map"></div>
     </template>
-    <script src="http://maps.api.2gis.ru/2.0/loader.js?pkg=full" data-id="dgLoader"></script>
-    <script>
-        Polymer({
-            ready: function () {
-                var _this = this;
-                if (!this.static) {
-                    DG.then(function () {
-                        var map = DG.map(this.id, {
-                            "center": [_this.lat, _this.lon],
-                            "zoom": _this.zoom
-                        });
-                        DG.marker([_this.lat, _this.lon]).addTo(map);
-                    });
-                }
+    <template id="static_template">
+        <!-- TODO: map size -->
+        <img class="map" src="">
+    </template>
+</template>
+<script src="http://maps.api.2gis.ru/2.0/loader.js?pkg=full" data-id="dgLoader"></script>
+<script>
+
+    !function () {
+        var owner = (HTMLImports.currentScript || document.currentScript || {}).ownerDocument || document;
+        var spinnerProto = Object.create(HTMLElement.prototype);
+        spinnerProto.createdCallback = function(){
+            var shadow = this;//.createShadowRoot();
+            var is_static = (this.getAttribute('static') !== null);
+            if (is_static) {
+                var tpl_id = 'static_template';
+            } else {
+                tpl_id = 'dynamic_template';
             }
-        });
-    </script>
-    <style></style>
-</polymer-element>
+            var tpl = owner.querySelector('#root_tpl');
+            var clone = document.importNode(tpl.content, true);
+
+            var mtpl = clone.querySelector('#'+tpl_id);
+            var mclone = document.importNode(mtpl.content, true);
+            clone.appendChild(mclone);
+            clone.querySelector('.map').setAttribute('id', 'map_'+this.getAttribute('id'));
+
+            var lat = this.getAttribute('lat').replace(',','.');
+            var lon = this.getAttribute('lon').replace(',','.');
+            var zoom = (this.getAttribute('zoom') || 12);
+
+            if (is_static){
+                var img = clone.querySelector('img');
+                var width = 684;//getComputedStyle(img).width.replace(/[^0-9]/g, '');
+                var height = 436;//getComputedStyle(img).height.replace(/[^0-9]/g, '');
+                img.src = "http://static.maps.api.2gis.ru/1.0?zoom="+zoom+"&size="+width+","+height+"&markers="+lat+","+lon;
+            }
+            shadow.appendChild(clone);
+        };
+        spinnerProto.attachedCallback = function(){
+            var lat = this.getAttribute('lat').replace(',','.');
+            var lon = this.getAttribute('lon').replace(',','.');
+            var zoom = (this.getAttribute('zoom') || 12);
+            var _this = this;
+            var is_static = (this.getAttribute('static') !== null);
+            if (!is_static) {
+                DG.then(function () {
+                    var map = DG.map('map_' + _this.getAttribute('id'), {
+                        "center": [lat, lon],
+                        "zoom":   zoom
+                    });
+                    DG.marker([lat, lon]).addTo(map);
+                });
+            }
+        };
+        document.registerElement('dg-location-map',{
+            prototype: spinnerProto
+        })
+    }();
+</script>
