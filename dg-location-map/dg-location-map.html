@@ -18,8 +18,8 @@
 
     !function () {
         var owner = (HTMLImports.currentScript || document.currentScript || {}).ownerDocument || document;
-        var spinnerProto = Object.create(HTMLElement.prototype);
-        spinnerProto.createdCallback = function(){
+        var mapProto = Object.create(HTMLElement.prototype);
+        mapProto.createdCallback = function(){
             var shadow = this;//.createShadowRoot();
             var is_static = (this.getAttribute('static') !== null);
             if (is_static) {
@@ -47,7 +47,7 @@
             }
             shadow.appendChild(clone);
         };
-        spinnerProto.attachedCallback = function(){
+        mapProto.attachedCallback = function(){
             var lat = this.getAttribute('lat').replace(',','.');
             var lon = this.getAttribute('lon').replace(',','.');
             var zoom = (this.getAttribute('zoom') || 12);
@@ -64,7 +64,7 @@
             }
         };
         document.registerElement('dg-location-map',{
-            prototype: spinnerProto
+            prototype: mapProto
         })
     }();
 </script>
