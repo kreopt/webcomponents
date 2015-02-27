@@ -14,9 +14,9 @@
         var data_type = this.getAttribute('type') || "text";
         var _this = this;
         var buttons = this.getElementsByTagName('button');
-        buttons.forEach(function (e) {
-            e.setAttribute('disabled', 'disabled');
-        });
+        for (var i=0; i<buttons.length; i++){
+            buttons[i].setAttribute('disabled', 'disabled');
+        }
         $.ajax({
             url: url,
             type: method,
@@ -26,16 +26,16 @@
             success: function (r) {
                 var evt = new CustomEvent("success", {detail: {response: r}});
                 _this.dispatchEvent(evt);
-                buttons.forEach(function (e) {
-                    e.removeAttribute('disabled');
-                });
+                for (var i=0; i<buttons.length; i++){
+                    buttons[i].removeAttribute('disabled', 'disabled');
+                }
             },
             error: function (e) {
                 var evt = new CustomEvent("error", {detail: {error: e}});
                 _this.dispatchEvent(evt);
-                buttons.forEach(function (e) {
-                    e.removeAttribute('disabled');
-                });
+                for (var i=0; i<buttons.length; i++){
+                    buttons[i].removeAttribute('disabled', 'disabled');
+                }
             }
         })
     };
