@@ -11,33 +11,29 @@
         var fd = new FormData(this);
         var url = this.getAttribute('action') || "";
         var method = this.getAttribute('method') || "POST";
-        var data_type = this.getAttribute('type') || "text";
         var _this = this;
         var buttons = this.getElementsByTagName('button');
-        buttons.forEach(function (e) {
-            e.setAttribute('disabled', 'disabled');
-        });
-        $.ajax({
-            url: url,
-            type: method,
-            data: fd,
-            dataType: data_type,
-            processData: false,
-            success: function (r) {
-                var evt = new CustomEvent("success", {detail: {response: r}});
+        for (var i=0; i<buttons.length; i++){
+            buttons[i].setAttribute('disabled', 'disabled');
+        }
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.open( method, url, true );
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState==4) {
+                if (xhr.status==200) {
+                    var evt = new CustomEvent("success", {detail: {response: xhr.responseText}});
+                } else {
+                    evt = new CustomEvent("error", {detail: {error: xhr.responseText}});
+                }
                 _this.dispatchEvent(evt);
-                buttons.forEach(function (e) {
-                    e.removeAttribute('disabled');
-                });
-            },
-            error: function (e) {
-                var evt = new CustomEvent("error", {detail: {error: e}});
-                _this.dispatchEvent(evt);
-                buttons.forEach(function (e) {
-                    e.removeAttribute('disabled');
-                });
+                for (var i = 0; i < buttons.length; i++) {
+                    buttons[i].removeAttribute('disabled', 'disabled');
+                }
             }
-        })
+        };
+        xhr.send( fd );
     };
 
     sfAjaxFormProto.createdCallback = function () {

@@ -1,0 +1,26 @@
+.sh_r {
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+.sh_l {
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+.sh_t {
+  top: 0;
+}
+.sh_b {
+  bottom: 0;
+}
+.viewport {
+  border: 2px solid #3f6;
+  position: absolute;
+  border-radius: 5rem;
+  box-shadow: 2rem 2rem 2rem rgba(0, 0, 0, 0.2), -2rem -2rem 2rem rgba(0, 0, 0, 0.2), 2rem -2rem 2rem rgba(0, 0, 0, 0.2), -2rem 2rem 2rem rgba(0, 0, 0, 0.2);
+}
+.shadowed {
+  background: rgba(0, 0, 0, 0.2);
+  position: absolute;
+}

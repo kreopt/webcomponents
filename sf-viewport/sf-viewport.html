@@ -1,0 +1,113 @@
+<template id="viewport_template">
+    <style>@import "/public/webcomponents/sf-viewport/sf-viewport.css";</style>
+    <div class="viewport_selector">
+        <div class="shadowed sh_l"></div>
+        <div class="shadowed sh_r"></div>
+        <div class="shadowed sh_t"></div>
+        <div class="shadowed sh_b"></div>
+        <div class="viewport"></div>
+    </div>
+</template>
+<script>
+    !function () {
+        var owner = (HTMLImports.currentScript || document.currentScript || {}).ownerDocument || document;
+
+        var vpProto = Object.create(HTMLElement.prototype,{
+            vpx:{writable:true, value:0},
+            vpy:{writable:true, value:0},
+            vpw:{writable:true, value:0},
+            vph:{writable:true, value:0}
+        });
+
+        vpProto.setSize = function(w, h){
+            var vw = this.offsetWidth;
+            var vh = this.offsetHeight;
+            if (w>vw){ w=vw; }
+            if (h>vh){ h=vh; }
+            this.vpw = w;
+            this.vph = h;
+            this.setPosition(this.vpx, this.vpy);
+        };
+        vpProto.setPosition = function(x_percent, y_percent){
+            var vw = this.offsetWidth;
+            var vh = this.offsetHeight;
+            var w=this.vpw;
+            var h=this.vph;
+            var pos_y = vh * (y_percent/100)-h/2;
+            var pos_x = vw * (x_percent/100)-w/2;
+            if (pos_x<0){ pos_x = 0; }
+            if (pos_y<0){ pos_y = 0;}
+            if (w+pos_x>vw){ pos_x=vw-w; }
+            if (h+pos_y>vh){ pos_y=vh-h; }
+            this.vpx = x_percent;
+            this.vpy = y_percent;
+            var shl = this.querySelector('.sh_l');
+            var sht = this.querySelector('.sh_t');
+            var shr = this.querySelector('.sh_r');
+            var shb = this.querySelector('.sh_b');
+            var vp_box = this.querySelector('.viewport');
+
+            var bw = 4;
+            vp_box.style.left = pos_x + 'px';
+            vp_box.style.top = pos_y + 'px';
+            vp_box.style.width = w + 'px';
+            vp_box.style.height = h + 'px';
+
+            shl.style.right = (vw-pos_x) + 'px';
+            shr.style.left = (pos_x + w + bw) + 'px';
+            sht.style.width = (w + bw) + 'px';
+            sht.style.left = (pos_x) + 'px';
+            sht.style.bottom = (vh-pos_y) + 'px';
+            shb.style.width = (w + bw) + 'px';
+            shb.style.left = (pos_x) + 'px';
+            shb.style.top = (pos_y + h + bw) +'px';
+
+            var evt = new CustomEvent('changed',{detail:{x:x_percent, y:y_percent, w:w, h:h}});
+            this.dispatchEvent(evt);
+        };
+
+        function getOffsetRect(elem) {
+            // (1)
+            var box = elem.getBoundingClientRect();
+
+            // (2)
+            var body = document.body;
+            var docElem = document.documentElement;
+
+            // (3)
+            var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+            var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+
+            // (4)
+            var clientTop = docElem.clientTop || body.clientTop || 0;
+            var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+
+            // (5)
+            var top  = box.top +  scrollTop - clientTop;
+            var left = box.left + scrollLeft - clientLeft;
+
+            return { top: Math.round(top), left: Math.round(left) }
+        }
+        vpProto.onclicked = function(e) {
+            var br = getOffsetRect(this);
+            this.setPosition((e.pageX - br.left)*100/this.offsetWidth, (e.pageY - br.top)*100/this.offsetHeight, this.vpw, this.vph);
+        };
+
+        vpProto.createdCallback = function () {
+            var shadow = this;//.createShadowRoot();
+            var tpl = owner.querySelector('#viewport_template');
+            var clone = document.importNode(tpl.content, true);
+            shadow.appendChild(clone);
+        };
+        vpProto.attachedCallback = function () {
+            this.addEventListener('click', this.onclicked, false);
+            //this.setPosition(0,0,0,0);
+        };
+        vpProto.detachedCallback = function () {
+            console.log('detached');
+        };
+        document.registerElement('sf-viewport', {
+            prototype: vpProto
+        })
+    }();
+</script>
