@@ -17,6 +17,11 @@
             buttons[i].setAttribute('disabled', 'disabled');
         }
 
+        var dyn_files = this.querySelectorAll('input[data-dyn-type="file"]');
+        for (i = 0; i< dyn_files.length; i++) {
+            fd.append(dyn_files[i].dataset['name']+"[]", dyn_files[i].file, dyn_files[i].file.name);
+        }
+
         var xhr = new XMLHttpRequest();
 
         xhr.open( method, url, true );
