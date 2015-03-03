@@ -1,0 +1,96 @@
+<template id="photo_uploader_tpl">
+    <label>
+        <button type="button">Добавить фото</button>
+        <input style="display: none" type="file" multiple="true" class="photo_uploader" accept="image/jpeg,image/png">
+    </label>
+</template>
+
+<template id="photo_preview_tpl">
+    <div class="preview">
+        <img class="preview_image" src="">
+        <input type="hidden" data-dyn-type="file">
+        <div>
+            <label><strong>Описание фото:</strong></label><br>
+            <textarea class="preview_description"></textarea>
+        </div>
+        <button type="button" class="delete_photo" title="Удалить"></button>
+    </div>
+</template>
+
+<script>
+    !function () {
+        var owner = (HTMLImports.currentScript || document.currentScript || {}).ownerDocument || document;
+
+        var photoUploaderProto = Object.create(HTMLElement.prototype);
+
+        photoUploaderProto.makePreview = function(){
+            var _this = this;
+            function loadend(file) {
+                var t = owner.querySelector('#photo_preview_tpl');
+                var preview = t.content.querySelector('.preview_image');
+                preview.src = this.result;
+                var clone = document.importNode(t.content, true);
+                var del_button = clone.querySelector('.delete_photo');
+                var file_input = clone.querySelector('input');
+                file_input.file = file;
+                file_input.dataset['name'] = _this.dataset['name'];
+                clone.querySelector('textarea').setAttribute('name', _this.dataset['name']+'_d');
+                del_button.addEventListener('click', function(){
+                    if (confirm('Удалить фото?')){
+                        _this.container.removeChild(this.parentNode);
+                    }
+                }, false);
+                _this.container.appendChild(clone);
+            }
+
+            for (var i=0; i< this.files.length; i++){
+                var reader = new FileReader();
+                if (this.files[i]) {
+                    reader.onloadend = loadend.bind(reader, this.files[i]);
+
+                    reader.readAsDataURL(this.files[i]);
+                }
+            }
+        };
+
+        photoUploaderProto.createdCallback = function(){
+            var shadow = this;//.createShadowRoot();
+            var tpl = owner.querySelector('#photo_uploader_tpl');
+            var clone = document.importNode(tpl.content, true);
+            var uploader = clone.querySelector('button');
+            var file_dialog = clone.querySelector('input');
+            file_dialog.container = document.getElementById(this.getAttribute('container'));
+            file_dialog.dataset['name'] = this.getAttribute('name');
+            var _this = this;
+
+            uploader.addEventListener('click', function(){
+                var evt = new MouseEvent("click", {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                });
+                file_dialog.dispatchEvent(evt);
+            }, false);
+
+            file_dialog.addEventListener('change',function(){
+                _this.makePreview.call(this);
+            }, false);
+
+            shadow.appendChild(clone);
+        };
+        document.registerElement('dg-photo-attachment',{
+            prototype: photoUploaderProto
+        });
+
+        var photoItemProto = Object.create(HTMLElement.prototype);
+        photoItemProto.createdCallback = function(){
+            var shadow = this;//.createShadowRoot();
+            var tpl = owner.querySelector('#photo_preview_tpl');
+            var clone = document.importNode(tpl.content, true);
+            shadow.appendChild(clone);
+        };
+        document.registerElement('dg-photo-preview',{
+            prototype: photoItemProto
+        });
+    }();
+</script>
