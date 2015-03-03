@@ -1,0 +1,45 @@
+<template id="radio_template">
+    <style scoped>
+        .radio input{
+            display: none;
+        }
+
+        .radio .icon {
+            display: block;
+            cursor: pointer;
+            overflow: hidden;
+        }
+    </style>
+    <label class="radio">
+        <input type="radio">
+        <span class="icon"></span>
+        <content></content>
+    </label>
+</template>
+<script>
+    !function () {
+        var owner = (HTMLImports.currentScript || document.currentScript || {}).ownerDocument || document;
+        var radioProto = Object.create(HTMLElement.prototype);
+        radioProto.createdCallback = function(){
+            var shadow = this;//.createShadowRoot();
+            var tpl = owner.querySelector('#radio_template');
+            var clone = document.importNode(tpl.content, true);
+            this.radio = clone.querySelector('.radio input');
+            this.radio.setAttribute('name', this.getAttribute('name'));
+            this.radio.setAttribute('value', this.getAttribute('value'));
+            if (this.getAttribute('checked') !== null) {
+                this.radio.setAttribute('checked', 'checked');
+            }
+
+            shadow.appendChild(clone);
+        };
+        radioProto.attributeChangedCallback = function(name, old_v, new_v) {
+            if (['name', 'value', 'checked'].indexOf(name) >= 0 ) {
+                this.radio.setAttribute(name, new_v);
+            }
+        };
+        document.registerElement('sf-radio',{
+            prototype: radioProto
+        })
+    }();
+</script>
