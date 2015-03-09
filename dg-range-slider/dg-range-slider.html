@@ -1,9 +1,18 @@
-<template>
+<template id="dg-range-slider_tpl--double">
     <div class="slider">
         <div class="slider_active" style="margin-left: 0;margin-right: 0">
             <div class="handle handle_left"></div>
             <div class="handle handle_right"></div>
         </div>
     </div>
+    <style>@import "dg-range-slider/dg-range-slider.css";</style>
 </template>
-<script src="dg-double-slider.js"></script>
+<template id="dg-range-slider_tpl--single">
+    <div class="slider">
+        <div class="slider_active" style="margin-left: 0;margin-right: 0">
+            <div class="handle handle_right"></div>
+        </div>
+    </div>
+    <style>@import "dg-range-slider/dg-range-slider.css";</style>
+</template>
+<script src="dg-slider.js"></script>

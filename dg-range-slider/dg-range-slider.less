@@ -1,0 +1,35 @@
+.slider {
+   @handle_size: 16px;
+
+   width: 152px;
+   height: 10px;
+   background: #dadada;
+   border-top: 1px solid #bebebe;
+   border-radius: 6px;
+   margin-top: 9px;
+   .slider_active {
+      height: 10px;
+      background: #ff9a94;
+      border-top: 1px solid #df8681;
+      margin-top: -1px;
+      position: relative;
+      border-radius: 6px;
+   }
+   .handle {
+      width: @handle_size;
+      height: @handle_size;
+      border: 5px solid #f03f36;
+      box-sizing: border-box;
+      background: #fff;
+      border-radius: @handle_size/2;
+      margin-top: -3px;
+      position: absolute;
+      cursor: pointer;
+   }
+   .handle_left {
+      margin-left: -@handle_size/2;
+   }
+   .handle_right {
+      right: -@handle_size/2;
+   }
+}
